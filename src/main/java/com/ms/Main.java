@@ -2,8 +2,8 @@ package com.ms;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.HPos;
@@ -50,27 +50,23 @@ public class Main extends Application {
 		GridPane grid = new GridPane();
 		grid.setStyle("-fx-background-color: palegreen; -fx-padding: 2; -fx-hgap: 2; -fx-vgap: 2;");
 		grid.setSnapToPixel(false);
-		for (int row = 0; row < 20; row++) {
-			for (int column = 0; column < 20; column++) {
+		
+		ColumnConstraints columnConstraints = new ColumnConstraints();
+		columnConstraints.setPercentWidth(100 / 20.0);
+		columnConstraints.setHalignment(HPos.CENTER);
+		RowConstraints rowConstraints = new RowConstraints();
+		rowConstraints.setPercentHeight(100 / 20.0);
+		rowConstraints.setValignment(VPos.CENTER);
+		IntStream.range(0, 20).forEach(row -> {
+			IntStream.range(0, 20).forEach(column -> {
 				Label label = new Label();
 				label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 				label.setStyle("-fx-background-color: black; -fx-alignment: center;");
 				grid.add(label, column, row);
-			}
-		}
-
-		ColumnConstraints oneThird = new ColumnConstraints();
-		oneThird.setPercentWidth(100 / 20.0);
-		oneThird.setHalignment(HPos.CENTER);
-		for (int column = 0; column < 20; column++) {
-			grid.getColumnConstraints().add(oneThird);
-		}
-		RowConstraints oneHalf = new RowConstraints();
-		oneHalf.setPercentHeight(100 / 20.0);
-		oneHalf.setValignment(VPos.CENTER);
-		for (int row = 0; row < 20; row++) {
-			grid.getRowConstraints().add(oneHalf);
-		}
+			});
+			grid.getColumnConstraints().add(columnConstraints);
+			grid.getRowConstraints().add(rowConstraints);
+		});
 		return grid;
 	}
     
