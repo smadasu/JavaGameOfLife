@@ -48,25 +48,16 @@ public class Main extends Application {
 
 	private GridPane createGrid() {
 		GridPane grid = new GridPane();
-		for (int row = 0; row < 20; row++) {
-			Label[] labels = new Label[20];
-			for (int column = 0; column < 20; column++) {
-				labels[column] = new Label();
-			}
-			grid.addRow(row, labels);
-		}
-
-		final Timeline timeline = new Timeline();
-		timeline.setCycleCount(Timeline.INDEFINITE);
-		timeline.setAutoReverse(true);
-		grid.getChildren().stream().forEach(node -> {
-			Control control = (Control) node;
-			control.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-			control.setStyle("-fx-background-color: black; -fx-alignment: center;");
-		});
-
 		grid.setStyle("-fx-background-color: palegreen; -fx-padding: 2; -fx-hgap: 2; -fx-vgap: 2;");
 		grid.setSnapToPixel(false);
+		for (int row = 0; row < 20; row++) {
+			for (int column = 0; column < 20; column++) {
+				Label label = new Label();
+				label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+				label.setStyle("-fx-background-color: black; -fx-alignment: center;");
+				grid.add(label, column, row);
+			}
+		}
 
 		ColumnConstraints oneThird = new ColumnConstraints();
 		oneThird.setPercentWidth(100 / 20.0);
