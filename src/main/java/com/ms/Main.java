@@ -2,6 +2,7 @@ package com.ms;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 import javafx.application.Application;
@@ -12,25 +13,29 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Control;
-import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.image.Image;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+	
+	private static final int NUMBER_OF_ROWS = 50;
+	private static final int NUMBER_OF_COLUMNS = 50;
+	
+	private AtomicBoolean run = new AtomicBoolean();
 
-	private static final Image ICON_48 = new Image(Main.class.getResourceAsStream("/icon-48x48.png"));
 
 	@Override
-	public void start(Stage primaryStage) {
-		StackPane stack = new StackPane();
+	public void start(Stage primaryStage) throws InterruptedException {
+		run.set(false);
 		VBox vBox = new VBox();
         vBox.setSpacing(20);
 		// create a grid with some sample data.
@@ -41,8 +46,12 @@ public class Main extends Application {
 		HBox buttonBar = createSegmentedButtonBar();
 		vBox.getChildren().addAll(grid, buttonBar);
 		layout.getChildren().add(vBox);
-//		layout.getChildren().addAll(grid);
 		primaryStage.setScene(new Scene(layout, 400, 450));
+		new Thread(() -> {
+			while (run.get()) {
+				System.out.println("RUNNING");
+			}
+		}).start();
 		primaryStage.show();
 	}
 
@@ -52,17 +61,16 @@ public class Main extends Application {
 		grid.setSnapToPixel(false);
 		
 		ColumnConstraints columnConstraints = new ColumnConstraints();
-		columnConstraints.setPercentWidth(100 / 20.0);
+		columnConstraints.setPercentWidth(100 / NUMBER_OF_COLUMNS);
 		columnConstraints.setHalignment(HPos.CENTER);
 		RowConstraints rowConstraints = new RowConstraints();
-		rowConstraints.setPercentHeight(100 / 20.0);
+		rowConstraints.setPercentHeight(100 / NUMBER_OF_ROWS);
 		rowConstraints.setValignment(VPos.CENTER);
-		IntStream.range(0, 20).forEach(row -> {
-			IntStream.range(0, 20).forEach(column -> {
-				Label label = new Label();
-				label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-				label.setStyle("-fx-background-color: black; -fx-alignment: center;");
-				grid.add(label, column, row);
+		IntStream.range(0, NUMBER_OF_ROWS).forEach(row -> {
+			IntStream.range(0, NUMBER_OF_COLUMNS).forEach(column -> {
+				boolean onFlag = ((Math.round(Math.random() * 1000000) % 2) == 0);
+				Rectangle rectangle = new Rectangle(5, 5, onFlag ? Color.BLACK : Color.WHITE);
+				grid.add(rectangle, column, row);
 			});
 			grid.getColumnConstraints().add(columnConstraints);
 			grid.getRowConstraints().add(rowConstraints);
@@ -76,17 +84,17 @@ public class Main extends Application {
      */
     public HBox createSegmentedButtonBar() {
         ToggleButton button1 = new ToggleButton("Start");
-        button1.setOnAction(e -> {
-            Platform.runLater(() -> {
-                
-            });
-        });
+        button1.setOnAction(e -> 
+	        Platform.runLater(() -> {
+	            run.set(true);
+	        })
+        );
         ToggleButton button2 = new ToggleButton("Pause");
-        button2.setOnAction(e -> {
-            Platform.runLater(() -> {
-                
-            });
-        });
+        button2.setOnAction(e -> 
+	        Platform.runLater(() -> {
+	        	run.set(false);
+	        })
+	    );
         
         ToggleGroup group = new ToggleGroup();
         group.getToggles().addAll(button1, button2);
