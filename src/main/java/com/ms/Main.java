@@ -1,10 +1,9 @@
 package com.ms;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javafx.application.Application;
@@ -24,22 +23,24 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import rx.Observable;
+import rx.Subscriber;
 
 public class Main extends Application {
 
-	private static final int NUMBER_OF_ROWS = 20;
-	private static final int NUMBER_OF_COLUMNS = 20;
+	private static final int NUMBER_OF_ROWS = 50;
+	private static final int NUMBER_OF_COLUMNS = 50;
 
-	private AtomicBoolean run = new AtomicBoolean();
+	private AtomicBoolean run = new AtomicBoolean(false);
+	private GridPane grid;
 
 
 	@Override
 	public void start(Stage primaryStage) throws InterruptedException {
-		run.set(false);
 		VBox vBox = new VBox();
 		vBox.setSpacing(20);
 		// create a grid with some sample data.
-		GridPane grid = createGrid();
+		grid = createGrid();
 
 		StackPane layout = new StackPane();
 		layout.setStyle("-fx-background-color: whitesmoke; -fx-padding: 10;");
@@ -48,14 +49,11 @@ public class Main extends Application {
 		layout.getChildren().add(vBox);
 		primaryStage.setScene(new Scene(layout, 400, 450));
 		primaryStage.show();
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.submit(() -> {
-			run.set(true);
-			//System.out.println("run = " + run.get());
-			while(run.get()) {
-				grid.getChildren().parallelStream().forEach(node -> applyBackground(node, grid));
-			}
-		});
+//		ExecutorService executorService = Executors.newFixedThreadPool(5);
+//		IntStream.range(0,5).forEach(e->executorService.submit(new Processor()));
+//		executorService.shutdown();
+//		executorService.awaitTermination(1, TimeUnit.DAYS);
+		//t1.start();
 	}
 
 	private GridPane createGrid() {
@@ -69,10 +67,16 @@ public class Main extends Application {
 		RowConstraints rowConstraints = new RowConstraints();
 		rowConstraints.setPercentHeight(100 / NUMBER_OF_ROWS);
 		rowConstraints.setValignment(VPos.CENTER);
+		Random random = new Random();
+		List<Integer> randomNumbers = random.ints(0, 50)
+			.limit(5)
+			.boxed()
+			.collect(Collectors.toList());
+//		System.out.println("randomNumbers = " + randomNumbers);
 		IntStream.range(0, NUMBER_OF_ROWS).forEach(row -> {
 			IntStream.range(0, NUMBER_OF_COLUMNS).forEach(column -> {
-				boolean onFlag = ((Math.round(Math.random() * 100) % 2) == 0);
-				Rectangle rectangle = new Rectangle(10, 10, onFlag ? Color.BLACK : Color.WHITE);
+				boolean onFlag = (random.nextInt(2) == 1 && randomNumbers.contains(row)) ? randomNumbers.contains(column) : false;
+				Rectangle rectangle = new Rectangle(5, 5, onFlag ? Color.BLACK : Color.WHITE);
 				grid.add(rectangle, column, row);
 			});
 			grid.getColumnConstraints().add(columnConstraints);
@@ -87,7 +91,29 @@ public class Main extends Application {
 	 */
 	public HBox createSegmentedButtonBar() {
 		ToggleButton button1 = new ToggleButton("Start");
-		button1.setOnAction(e -> run.set(true));
+		button1.setOnAction(e -> {
+			Observable.from(grid.getChildren())
+								.subscribe(new Subscriber<Node>() {
+
+									@Override
+									public void onCompleted() {
+										// TODO Auto-generated method stub
+										
+									}
+
+									@Override
+									public void onError(Throwable e) {
+										// TODO Auto-generated method stub
+										
+									}
+
+									@Override
+									public void onNext(Node node) {
+										applyBackground(node);
+									}
+									
+								});
+		});//grid.getChildren().stream().forEach(node->applyBackground(node,grid)));
 		ToggleButton button2 = new ToggleButton("Pause");
 		button2.setOnAction(e -> run.set(false));
 
@@ -108,34 +134,34 @@ public class Main extends Application {
 		return displayBox;
 	}
 
-	private void applyBackground(Node node, GridPane grid) {
+	private void applyBackground(Node node) {
 		List<Node> children = grid.getChildren();
-		int ind = children.indexOf(node);
-		int currentRow = ind / NUMBER_OF_ROWS;
-		int currentColumn = ind - (ind / NUMBER_OF_ROWS) * NUMBER_OF_COLUMNS;
-		int[] neighbors = { (currentRow - 1) * NUMBER_OF_ROWS + currentColumn - 1, (currentRow - 1) * NUMBER_OF_ROWS + currentColumn,
-			(currentRow - 1) * NUMBER_OF_ROWS + currentColumn + 1, currentRow * NUMBER_OF_ROWS + currentColumn - 1,
-			currentRow * NUMBER_OF_ROWS + currentColumn + 1, (currentRow + 1) * NUMBER_OF_ROWS + currentColumn - 1,
-			(currentRow + 1) * NUMBER_OF_ROWS + currentColumn, (currentRow + 1) * NUMBER_OF_ROWS + currentColumn + 1 };
-		long aliveNeighbors = Arrays.stream(neighbors).filter(index -> {
-			if (index < 0 || index > (NUMBER_OF_ROWS * NUMBER_OF_COLUMNS - 1)) {
-				return false;
-			}
-			Rectangle rectangle = (Rectangle) children.get(index);
-			return rectangle.getFill().equals(Color.BLACK);
-		}).count();
+		final int currentRow = GridPane.getRowIndex(node);
+		int currentColumn = GridPane.getColumnIndex(node);
+		long aliveNeighbors = children.stream()
+					.filter(child->{
+						Rectangle neighbor = (Rectangle)child;
+						int childRow = GridPane.getRowIndex(neighbor);
+						int childColumn = GridPane.getColumnIndex(neighbor);
+						return ((childRow - currentRow) == -1 || (childRow - currentRow) == 1
+								|| (childColumn - currentColumn) == -1 || (childRow - currentRow) == 1 &&
+								neighbor.getFill().equals(Color.BLACK));
+					})
+					.count();
+		
+		System.out.println("aliveNeighbors = " + aliveNeighbors);
 		Rectangle currentRectangle = (Rectangle) node;
 		if (currentRectangle.getFill().equals(Color.BLACK) && (aliveNeighbors < 2 || aliveNeighbors > 3)) {
-			//System.out.println("aliveNeighbors = " + aliveNeighbors);
-			//System.out.println("dying");
+			System.out.println("dying");
 			currentRectangle.setFill(Color.WHITE);
 		} else if (aliveNeighbors == 3) {
-			//System.out.println("bathuking");
+			System.out.println("bathuking");
 			currentRectangle.setFill(Color.BLACK);
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		launch(args);
+		//t1.join();
 	}
 }
