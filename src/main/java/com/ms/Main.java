@@ -1,6 +1,5 @@
 package com.ms;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -104,7 +103,7 @@ public class Main extends Application {
 	public HBox createSegmentedButtonBar(GridPane grid) {
 		ToggleButton button1 = new ToggleButton("Start");
 		button1.setOnAction(e -> {
-			grid.getChildren().stream().forEach(node->	 ((ObservableNode)node).notifyObservers());
+			grid.getChildren().stream().forEach(node->	 ((ObservableNode)node).notifyObservers());		
 		});
 		ToggleButton button2 = new ToggleButton("Pause");
 		button2.setOnAction(e -> {
@@ -129,7 +128,6 @@ public class Main extends Application {
 	}
 
 	public static void main(String[] args) throws Exception {
-		launch(args);
-		//t1.join();
+		launch(args);		
 	}
 }
