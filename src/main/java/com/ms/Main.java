@@ -2,6 +2,9 @@ package com.ms;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,11 +27,14 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.animation.Transition;
+import javafx.animation.Animation;
+import javafx.util.Duration;
 
 public class Main extends Application {
 
-	private static final int NUMBER_OF_ROWS = 50;
-	private static final int NUMBER_OF_COLUMNS = 50;
+	private static final int NUMBER_OF_ROWS = 30;
+	private static final int NUMBER_OF_COLUMNS = 30;
 
 	@Override
 	public void start(Stage primaryStage) throws InterruptedException {
@@ -43,23 +49,23 @@ public class Main extends Application {
 		primaryStage.setScene(new Scene(layout, 400, 450));
 		primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
 
-				@Override
-				public void handle(WindowEvent event) {
-					ObservableList<Node> children = grid.getChildren();
-					children.stream().forEach(node -> {
-						int rowIndex = GridPane.getRowIndex(node);
-						int columnIndex = GridPane.getColumnIndex(node);
-						IntStream.of(rowIndex -1, rowIndex, rowIndex + 1).forEach(rowInd -> {
-						   IntStream.of(columnIndex - 1, columnIndex, columnIndex + 1).forEach(columnInd -> {
-							   	int neighborIndex = rowInd * 50 + columnInd;
-							   	if ((rowInd == rowIndex && columnInd == columnIndex) ||
-									   rowInd < 0 || rowInd > 49 || columnInd < 0 || columnInd > 49){
-								   //invalid cell
-							   	} else {
-							   		((ObservableNode)node).register((Observer) children.get(neighborIndex));
-							   	}
-						   });
+			@Override
+			public void handle(WindowEvent event) {
+				ObservableList<Node> children = grid.getChildren();
+				children.stream().forEach(node -> {
+					int rowIndex = GridPane.getRowIndex(node);
+					int columnIndex = GridPane.getColumnIndex(node);
+					IntStream.of(rowIndex -1, rowIndex, rowIndex + 1).forEach(rowInd -> {
+						IntStream.of(columnIndex - 1, columnIndex, columnIndex + 1).forEach(columnInd -> {
+							int neighborIndex = rowInd * NUMBER_OF_COLUMNS + columnInd;
+							if ((rowInd == rowIndex && columnInd == columnIndex) ||
+								rowInd < 0 || rowInd > (NUMBER_OF_ROWS - 1) || columnInd < 0 || columnInd > (NUMBER_OF_COLUMNS - 1)){
+								//invalid cell
+							} else {
+								((ObservableNode)node).register((Observer) children.get(neighborIndex));
+							}
 						});
+					});
 				});
 			}
 		});
@@ -79,7 +85,7 @@ public class Main extends Application {
 		rowConstraints.setValignment(VPos.CENTER);
 		grid.getColumnConstraints().add(columnConstraints);
 		grid.getRowConstraints().add(rowConstraints);
-		
+
 		Random random = new Random();
 		List<Integer> randomNumbers = random.ints(0, 50)
 			.limit(30)
@@ -101,13 +107,20 @@ public class Main extends Application {
 	 * @return
 	 */
 	public HBox createSegmentedButtonBar(GridPane grid) {
-		ToggleButton button1 = new ToggleButton("Start");
+		ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(10);
+		ToggleButton button1 = new ToggleButton("Start");		
 		button1.setOnAction(e -> {
-			grid.getChildren().stream().forEach(node->	 ((ObservableNode)node).notifyObservers());		
+
+			IntStream.range(0, 10).forEach(index -> {
+				scheduledThreadPool.scheduleAtFixedRate(() -> {
+					grid.getChildren().stream().forEach(node->	 ((ObservableNode)node).notifyObservers());
+				}, 1, 100, TimeUnit.MILLISECONDS);
+			});
+			
 		});
 		ToggleButton button2 = new ToggleButton("Pause");
 		button2.setOnAction(e -> {
-			
+			scheduledThreadPool.shutdownNow();
 		});
 
 		ToggleGroup group = new ToggleGroup();

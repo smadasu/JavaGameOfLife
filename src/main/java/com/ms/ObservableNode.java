@@ -40,6 +40,12 @@ public class ObservableNode extends Rectangle implements Observable, Observer {
 		} else if (aliveNeighbors == 3) {
 			setFill(Color.BLACK);
 		}
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public long getAliveNeighbors() {
