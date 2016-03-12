@@ -46,7 +46,7 @@ public class Main extends Application {
 		HBox buttonBar = createSegmentedButtonBar(grid);
 		vBox.getChildren().addAll(grid, buttonBar);
 		layout.getChildren().add(vBox);
-		primaryStage.setScene(new Scene(layout, 400, 450));
+		primaryStage.setScene(new Scene(layout, 230, 300));
 		primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
 
 			@Override
@@ -87,7 +87,7 @@ public class Main extends Application {
 		grid.getRowConstraints().add(rowConstraints);
 
 		Random random = new Random();
-		List<Integer> randomNumbers = random.ints(0, 50)
+		List<Integer> randomNumbers = random.ints(0, NUMBER_OF_ROWS)
 			.limit(30)
 			.boxed()
 			.collect(Collectors.toList());
@@ -113,18 +113,14 @@ public class Main extends Application {
 
 			IntStream.range(0, 10).forEach(index -> {
 				scheduledThreadPool.scheduleAtFixedRate(() -> {
-					grid.getChildren().stream().forEach(node->	 ((ObservableNode)node).notifyObservers());
+					grid.getChildren().parallelStream().forEach(node->	 ((ObservableNode)node).notifyObservers());
 				}, 1, 100, TimeUnit.MILLISECONDS);
 			});
 			
 		});
-		ToggleButton button2 = new ToggleButton("Pause");
-		button2.setOnAction(e -> {
-			scheduledThreadPool.shutdownNow();
-		});
 
 		ToggleGroup group = new ToggleGroup();
-		group.getToggles().addAll(button1, button2);
+		group.getToggles().addAll(button1);
 		group.selectToggle(button1);
 
 		HBox displayBox = new HBox();
@@ -133,7 +129,7 @@ public class Main extends Application {
 
 		HBox  buttonBar = new HBox();
 		buttonBar.setSpacing(20);
-		buttonBar.getChildren().addAll(button1, button2);
+		buttonBar.getChildren().addAll(button1);
 
 		displayBox.getChildren().addAll(buttonBar);
 

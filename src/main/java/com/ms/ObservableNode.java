@@ -29,7 +29,7 @@ public class ObservableNode extends Rectangle implements Observable, Observer {
 
 	@Override
 	public void notifyObservers() {
-		neighbors.stream().forEach(node->node.update(getFill()));
+		neighbors.parallelStream().forEach(node->node.update(getFill()));
 	}
 	
 	@Override
@@ -40,16 +40,10 @@ public class ObservableNode extends Rectangle implements Observable, Observer {
 		} else if (aliveNeighbors == 3) {
 			setFill(Color.BLACK);
 		}
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	public long getAliveNeighbors() {
-		return neighbors.stream()
+		return neighbors.parallelStream()
 										  .filter(neighbor->((Rectangle) neighbor).getFill().equals(Color.BLACK))
 										  .count();
 	}
