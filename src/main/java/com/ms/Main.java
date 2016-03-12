@@ -33,8 +33,8 @@ import javafx.util.Duration;
 
 public class Main extends Application {
 
-	private static final int NUMBER_OF_ROWS = 30;
-	private static final int NUMBER_OF_COLUMNS = 30;
+	private static final int NUMBER_OF_ROWS = 40;
+	private static final int NUMBER_OF_COLUMNS = 40;
 
 	@Override
 	public void start(Stage primaryStage) throws InterruptedException {
@@ -46,7 +46,7 @@ public class Main extends Application {
 		HBox buttonBar = createSegmentedButtonBar(grid);
 		vBox.getChildren().addAll(grid, buttonBar);
 		layout.getChildren().add(vBox);
-		primaryStage.setScene(new Scene(layout, 230, 300));
+		primaryStage.setScene(new Scene(layout, 300, 400));
 		primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
 
 			@Override
@@ -138,5 +138,6 @@ public class Main extends Application {
 
 	public static void main(String[] args) throws Exception {
 		launch(args);		
+		System.exit(0);
 	}
 }
