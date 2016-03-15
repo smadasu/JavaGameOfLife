@@ -27,14 +27,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.animation.Transition;
-import javafx.animation.Animation;
-import javafx.util.Duration;
 
 public class Main extends Application {
 
-	private static final int NUMBER_OF_ROWS = 40;
-	private static final int NUMBER_OF_COLUMNS = 40;
+	private static final int NUMBER_OF_ROWS = 50;
+	private static final int NUMBER_OF_COLUMNS = 50;
 
 	@Override
 	public void start(Stage primaryStage) throws InterruptedException {
@@ -52,7 +49,7 @@ public class Main extends Application {
 			@Override
 			public void handle(WindowEvent event) {
 				ObservableList<Node> children = grid.getChildren();
-				children.stream().forEach(node -> {
+				children.parallelStream().forEach(node -> {
 					int rowIndex = GridPane.getRowIndex(node);
 					int columnIndex = GridPane.getColumnIndex(node);
 					IntStream.of(rowIndex -1, rowIndex, rowIndex + 1).forEach(rowInd -> {
@@ -65,7 +62,7 @@ public class Main extends Application {
 								((ObservableNode)node).register((Observer) children.get(neighborIndex));
 							}
 						});
-					});
+					});					
 				});
 			}
 		});
@@ -110,18 +107,23 @@ public class Main extends Application {
 		ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(10);
 		ToggleButton button1 = new ToggleButton("Start");		
 		button1.setOnAction(e -> {
-
-			IntStream.range(0, 10).forEach(index -> {
+			IntStream.range(0, 40).forEach(index -> {
 				scheduledThreadPool.scheduleAtFixedRate(() -> {
-					grid.getChildren().parallelStream().forEach(node->	 ((ObservableNode)node).notifyObservers());
-				}, 1, 100, TimeUnit.MILLISECONDS);
+					grid.getChildren().stream()
+												.forEach(node->	 ((ObservableNode)node).notifyObservers());
+				}, 1, 10, TimeUnit.MILLISECONDS);
 			});
-			
 		});
-
 		ToggleGroup group = new ToggleGroup();
-		group.getToggles().addAll(button1);
-		group.selectToggle(button1);
+		
+		ToggleButton button2 = new ToggleButton("Print");		
+		button2.setOnAction(e -> {
+			grid.getChildren().stream()
+			  							.filter(node->((ObservableNode) node).getAliveNeighbors() == 0)
+										.forEach(node -> System.out.println(node));
+		});
+		group.getToggles().addAll(button1, button2);
+		group.selectToggle(button2);
 
 		HBox displayBox = new HBox();
 		displayBox.setSpacing(20);
@@ -129,7 +131,7 @@ public class Main extends Application {
 
 		HBox  buttonBar = new HBox();
 		buttonBar.setSpacing(20);
-		buttonBar.getChildren().addAll(button1);
+		buttonBar.getChildren().addAll(button1, button2);
 
 		displayBox.getChildren().addAll(buttonBar);
 
