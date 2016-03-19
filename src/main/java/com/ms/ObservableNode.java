@@ -28,38 +28,33 @@ public class ObservableNode extends Rectangle implements Observable, Observer {
 
 	@Override
 	public void notifyObservers() {
-		neighbors.stream().forEach(node->node.update());
-	}
-	
-	@Override
-	public void update() {
-		long aliveNeighbors = getAliveNeighbors();
-		if (getFill().equals(Color.BLACK)) {
-			if (aliveNeighbors < 2 || aliveNeighbors > 3) {
-				setFill(Color.WHITE);
-			}
-		} else if (aliveNeighbors == 3) {
-			setFill(Color.BLACK);
+		for(Observer node : neighbors) {
+			node.transformedFill();
 		}
 	}
 	
-	public long getAliveNeighbors() {
-		return neighbors.stream()
-										  .filter(neighbor->((Rectangle) neighbor).getFill().equals(Color.BLACK))
-										  .count();
+	@Override
+	public Paint transformedFill() {
+		long aliveNeighbors = getAliveNeighbors();
+		Paint fill = getFill();
+		if (fill.equals(Color.BLACK)) {
+			if (aliveNeighbors < 2 || aliveNeighbors > 3) {
+				return Color.WHITE;	
+			}
+		} else if ((fill.equals(Color.WHITE)) && aliveNeighbors == 3) {
+			return Color.BLACK;		
+		}
+		return fill;
 	}
 	
-	public String toString() {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("Row Index = ");
-		stringBuilder.append(getX());
-		stringBuilder.append(":Column Index = ");
-		stringBuilder.append(getY());
-		stringBuilder.append(":AliveNeighbors = ");
-		stringBuilder.append(getAliveNeighbors());
-		stringBuilder.append(":isAlive = ");
-		stringBuilder.append(getFill().equals(Color.BLACK));
-		return stringBuilder.toString();
+	public int getAliveNeighbors() {
+		int count = 0;
+		for(Observer node : neighbors) {
+			if (((Rectangle) node).getFill().equals(Color.BLACK)) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	public List<Observer> getNeighbors() {

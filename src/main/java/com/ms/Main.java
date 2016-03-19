@@ -1,16 +1,14 @@
 package com.ms;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
@@ -25,13 +23,16 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class Main extends Application {
 
-	private static final int NUMBER_OF_ROWS = 50;
-	private static final int NUMBER_OF_COLUMNS = 50;
+	private static final int NUMBER_OF_ROWS = 40;
+	private static final int NUMBER_OF_COLUMNS = 40;
+	AnimationTimer timer = null;
 
 	@Override
 	public void start(Stage primaryStage) throws InterruptedException {
@@ -39,17 +40,13 @@ public class Main extends Application {
 		vBox.setSpacing(20);
 		GridPane grid = createGrid();
 		StackPane layout = new StackPane();
-		layout.setStyle("-fx-background-color: whitesmoke; -fx-padding: 10;");
 		HBox buttonBar = createSegmentedButtonBar(grid);
 		vBox.getChildren().addAll(grid, buttonBar);
 		layout.getChildren().add(vBox);
-		primaryStage.setScene(new Scene(layout, 300, 400));
-		primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
-
-			@Override
-			public void handle(WindowEvent event) {
+		primaryStage.setScene(new Scene(layout, 280, 350));
+		primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, windowEvent -> {
 				ObservableList<Node> children = grid.getChildren();
-				children.parallelStream().forEach(node -> {
+				children.stream().forEach(node -> {
 					int rowIndex = GridPane.getRowIndex(node);
 					int columnIndex = GridPane.getColumnIndex(node);
 					IntStream.of(rowIndex -1, rowIndex, rowIndex + 1).forEach(rowInd -> {
@@ -59,13 +56,25 @@ public class Main extends Application {
 								rowInd < 0 || rowInd > (NUMBER_OF_ROWS - 1) || columnInd < 0 || columnInd > (NUMBER_OF_COLUMNS - 1)){
 								//invalid cell
 							} else {
-								((ObservableNode)node).register((Observer) children.get(neighborIndex));
+								Observer neighbor = (Observer) children.get(neighborIndex);
+								((ObservableNode)node).register(neighbor);
 							}
 						});
 					});					
-				});
-			}
+				});				
 		});
+		
+		timer = new AnimationTimer() {
+			
+			@Override
+			public void handle(long now) {
+				Map<Node, Paint> collect = grid.getChildren().parallelStream()
+											.collect(Collectors.toMap(node -> node, node -> ((ObservableNode)node).transformedFill()));
+				collect.entrySet().stream()
+											.forEach(entry -> ((Rectangle)entry.getKey()).setFill(entry.getValue()));
+			}
+		};
+		
 		primaryStage.show();
 	}
 
@@ -91,7 +100,7 @@ public class Main extends Application {
 		IntStream.range(0, NUMBER_OF_ROWS).forEach(row -> {
 			IntStream.range(0, NUMBER_OF_COLUMNS).forEach(column -> {
 				boolean onFlag = (random.nextInt(2) == 1 && randomNumbers.contains(row)) ? randomNumbers.contains(column) : false;
-				ObservableNode rectangle = new ObservableNode(5, 5, onFlag ? Color.BLACK : Color.WHITE);				
+				ObservableNode rectangle = new ObservableNode(5, 5, onFlag ? Color.BLACK : Color.WHITE);	
 				grid.add(rectangle, column, row);
 			});
 		});
@@ -104,23 +113,15 @@ public class Main extends Application {
 	 * @return
 	 */
 	public HBox createSegmentedButtonBar(GridPane grid) {
-		ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(10);
 		ToggleButton button1 = new ToggleButton("Start");		
 		button1.setOnAction(e -> {
-			IntStream.range(0, 40).forEach(index -> {
-				scheduledThreadPool.scheduleAtFixedRate(() -> {
-					grid.getChildren().stream()
-												.forEach(node->	 ((ObservableNode)node).notifyObservers());
-				}, 1, 10, TimeUnit.MILLISECONDS);
-			});
+			timer.start();
 		});
 		ToggleGroup group = new ToggleGroup();
 		
-		ToggleButton button2 = new ToggleButton("Print");		
+		ToggleButton button2 = new ToggleButton("Stop");		
 		button2.setOnAction(e -> {
-			grid.getChildren().stream()
-			  							.filter(node->((ObservableNode) node).getAliveNeighbors() == 0)
-										.forEach(node -> System.out.println(node));
+			timer.stop();
 		});
 		group.getToggles().addAll(button1, button2);
 		group.selectToggle(button2);
