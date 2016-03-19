@@ -6,7 +6,9 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javafx.animation.AnimationTimer;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
@@ -27,12 +29,13 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 
 public class Main extends Application {
 
 	private static final int NUMBER_OF_ROWS = 40;
 	private static final int NUMBER_OF_COLUMNS = 40;
-	AnimationTimer timer = null;
+	private Timeline timeline;
 
 	@Override
 	public void start(Stage primaryStage) throws InterruptedException {
@@ -62,19 +65,7 @@ public class Main extends Application {
 						});
 					});					
 				});				
-		});
-		
-		timer = new AnimationTimer() {
-			
-			@Override
-			public void handle(long now) {
-				Map<Node, Paint> collect = grid.getChildren().parallelStream()
-											.collect(Collectors.toMap(node -> node, node -> ((ObservableNode)node).transformedFill()));
-				collect.entrySet().stream()
-											.forEach(entry -> ((Rectangle)entry.getKey()).setFill(entry.getValue()));
-			}
-		};
-		
+		});		
 		primaryStage.show();
 	}
 
@@ -115,13 +106,24 @@ public class Main extends Application {
 	public HBox createSegmentedButtonBar(GridPane grid) {
 		ToggleButton button1 = new ToggleButton("Start");		
 		button1.setOnAction(e -> {
-			timer.start();
+			timeline = new Timeline(new KeyFrame(
+			        Duration.millis(10),
+			        ae -> {
+						Map<Node, Paint> collect = grid.getChildren().parallelStream()
+								.collect(Collectors.toMap(node -> node, node -> ((ObservableNode)node).transformedFill()));
+						collect.entrySet().stream()
+								.forEach(entry -> ((Rectangle)entry.getKey()).setFill(entry.getValue()));
+			        	
+			        }));
+			timeline.setCycleCount(Animation.INDEFINITE);
+			timeline.play();
+			
 		});
 		ToggleGroup group = new ToggleGroup();
 		
 		ToggleButton button2 = new ToggleButton("Stop");		
 		button2.setOnAction(e -> {
-			timer.stop();
+			timeline.stop();
 		});
 		group.getToggles().addAll(button1, button2);
 		group.selectToggle(button2);
