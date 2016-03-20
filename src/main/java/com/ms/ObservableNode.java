@@ -7,33 +7,19 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
-public class ObservableNode extends Rectangle implements Observable, Observer {
+public class ObservableNode extends Rectangle {
 	
-	private List<Observer> neighbors = null;
+	private List<ObservableNode> neighbors = null;
 
 	public ObservableNode(double width, double height, Paint fill) {
 		super(width, height, fill);
 		neighbors = new ArrayList<>();
 	}
 
-	@Override
-	public void register(Observer observer) {
+	public void register(ObservableNode observer) {
 		neighbors.add(observer);
 	}
-
-	@Override
-	public void unregister(Observer observer) {
-		neighbors.remove(observer);
-	}
-
-	@Override
-	public void notifyObservers() {
-		for(Observer node : neighbors) {
-			node.transformedFill();
-		}
-	}
 	
-	@Override
 	public Paint transformedFill() {
 		long aliveNeighbors = getAliveNeighbors();
 		Paint fill = getFill();
@@ -49,16 +35,12 @@ public class ObservableNode extends Rectangle implements Observable, Observer {
 	
 	public int getAliveNeighbors() {
 		int count = 0;
-		for(Observer node : neighbors) {
+		for(ObservableNode node : neighbors) {
 			if (((Rectangle) node).getFill().equals(Color.BLACK)) {
 				count++;
 			}
 		}
 		return count;
-	}
-
-	public List<Observer> getNeighbors() {
-		return neighbors;
 	}
 	
 }

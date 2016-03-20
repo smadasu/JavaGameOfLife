@@ -1,2 +1,2 @@
 # JavaGameOfLife
-Game of Life using java observer pattern
+Game of Life using Javafx

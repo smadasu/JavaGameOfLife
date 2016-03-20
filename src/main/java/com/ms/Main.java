@@ -59,8 +59,7 @@ public class Main extends Application {
 								rowInd < 0 || rowInd > (NUMBER_OF_ROWS - 1) || columnInd < 0 || columnInd > (NUMBER_OF_COLUMNS - 1)){
 								//invalid cell
 							} else {
-								Observer neighbor = (Observer) children.get(neighborIndex);
-								((ObservableNode)node).register(neighbor);
+								((ObservableNode)node).register((ObservableNode) children.get(neighborIndex));
 							}
 						});
 					});					
