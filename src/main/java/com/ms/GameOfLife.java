@@ -26,13 +26,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
-public class Main extends Application {
+public class GameOfLife extends Application {
 
-	private static final int NUMBER_OF_ROWS = 40;
-	private static final int NUMBER_OF_COLUMNS = 40;
+	public static final int NUMBER_OF_ROWS = 40;
+	public static final int NUMBER_OF_COLUMNS = 40;
 	private Timeline timeline;
 
 	@Override
@@ -45,24 +44,15 @@ public class Main extends Application {
 		vBox.getChildren().addAll(grid, buttonBar);
 		layout.getChildren().add(vBox);
 		primaryStage.setScene(new Scene(layout, 280, 350));
-		primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, windowEvent -> {
-				ObservableList<Node> children = grid.getChildren();
-				children.stream().forEach(node -> {
-					int rowIndex = GridPane.getRowIndex(node);
-					int columnIndex = GridPane.getColumnIndex(node);
-					IntStream.of(rowIndex -1, rowIndex, rowIndex + 1).forEach(rowInd -> {
-						IntStream.of(columnIndex - 1, columnIndex, columnIndex + 1).forEach(columnInd -> {
-							int neighborIndex = rowInd * NUMBER_OF_COLUMNS + columnInd;
-							if ((rowInd == rowIndex && columnInd == columnIndex) ||
-								rowInd < 0 || rowInd > (NUMBER_OF_ROWS - 1) || columnInd < 0 || columnInd > (NUMBER_OF_COLUMNS - 1)){
-								//invalid cell
-							} else {
-								((ObservableNode)node).register((ObservableNode) children.get(neighborIndex));
-							}
-						});
-					});					
-				});				
-		});		
+		timeline = new Timeline(new KeyFrame(Duration.millis(50), ae -> {
+					grid.getChildren().stream()
+							.collect(Collectors.toMap(node -> node, node -> ((GameNode)node).transformedFill()))
+							.entrySet().stream()
+							.filter(entry -> !((Rectangle)entry.getKey()).getFill().equals(entry.getValue()))
+							.forEach(entry -> ((Rectangle)entry.getKey()).setFill(entry.getValue()));
+		        	
+		        }));
+		timeline.setCycleCount(Animation.INDEFINITE);
 		primaryStage.show();
 	}
 
@@ -88,54 +78,30 @@ public class Main extends Application {
 		IntStream.range(0, NUMBER_OF_ROWS).forEach(row -> {
 			IntStream.range(0, NUMBER_OF_COLUMNS).forEach(column -> {
 				boolean onFlag = (random.nextInt(2) == 1 && randomNumbers.contains(row)) ? randomNumbers.contains(column) : false;
-				ObservableNode rectangle = new ObservableNode(5, 5, onFlag ? Color.BLACK : Color.WHITE);	
+				GameNode rectangle = new GameNode(5, 5, onFlag ? Color.BLACK : Color.WHITE);	
 				grid.add(rectangle, column, row);
 			});
 		});
+		ObservableList<Node> children = grid.getChildren();
+		children.parallelStream().forEach(node -> ((GameNode)node).initializeNeighbors(children));
 		return grid;
 	}
 
-	/**
-	 * Demonstrates the construction and usage of the {@link SegmentedButtonBar}
-	 * @param grid 
-	 * @return
-	 */
 	public HBox createSegmentedButtonBar(GridPane grid) {
 		ToggleButton button1 = new ToggleButton("Start");		
-		button1.setOnAction(e -> {
-			timeline = new Timeline(new KeyFrame(
-			        Duration.millis(50),
-			        ae -> {
-						grid.getChildren().stream()
-								.collect(Collectors.toMap(node -> node, node -> ((ObservableNode)node).transformedFill()))
-								.entrySet().stream()
-								.filter(entry -> !((Rectangle)entry.getKey()).getFill().equals(entry.getValue()))
-								.forEach(entry -> ((Rectangle)entry.getKey()).setFill(entry.getValue()));
-			        	
-			        }));
-			timeline.setCycleCount(Animation.INDEFINITE);
-			timeline.play();
-			
-		});
-		ToggleGroup group = new ToggleGroup();
-		
+		button1.setOnAction(e -> timeline.play());		
 		ToggleButton button2 = new ToggleButton("Stop");		
-		button2.setOnAction(e -> {
-			timeline.stop();
-		});
+		button2.setOnAction(e -> timeline.stop());
+		ToggleGroup group = new ToggleGroup();
 		group.getToggles().addAll(button1, button2);
-		group.selectToggle(button2);
-
-		HBox displayBox = new HBox();
-		displayBox.setSpacing(20);
-		displayBox.setAlignment(Pos.CENTER);
-
+		group.selectToggle(button2);		
 		HBox  buttonBar = new HBox();
 		buttonBar.setSpacing(20);
 		buttonBar.getChildren().addAll(button1, button2);
-
+		HBox displayBox = new HBox();
+		displayBox.setSpacing(20);
+		displayBox.setAlignment(Pos.CENTER);
 		displayBox.getChildren().addAll(buttonBar);
-
 		return displayBox;
 	}
 
