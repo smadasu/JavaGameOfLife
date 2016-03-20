@@ -1,7 +1,6 @@
 package com.ms;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -25,7 +24,6 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -108,9 +106,10 @@ public class Main extends Application {
 			timeline = new Timeline(new KeyFrame(
 			        Duration.millis(50),
 			        ae -> {
-						Map<Node, Paint> collect = grid.getChildren().stream()
-								.collect(Collectors.toMap(node -> node, node -> ((ObservableNode)node).transformedFill()));
-						collect.entrySet().stream()
+						grid.getChildren().stream()
+								.collect(Collectors.toMap(node -> node, node -> ((ObservableNode)node).transformedFill()))
+								.entrySet().stream()
+								.filter(entry -> !((Rectangle)entry.getKey()).getFill().equals(entry.getValue()))
 								.forEach(entry -> ((Rectangle)entry.getKey()).setFill(entry.getValue()));
 			        	
 			        }));
