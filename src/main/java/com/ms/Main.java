@@ -107,9 +107,9 @@ public class Main extends Application {
 		ToggleButton button1 = new ToggleButton("Start");		
 		button1.setOnAction(e -> {
 			timeline = new Timeline(new KeyFrame(
-			        Duration.millis(10),
+			        Duration.millis(50),
 			        ae -> {
-						Map<Node, Paint> collect = grid.getChildren().parallelStream()
+						Map<Node, Paint> collect = grid.getChildren().stream()
 								.collect(Collectors.toMap(node -> node, node -> ((ObservableNode)node).transformedFill()));
 						collect.entrySet().stream()
 								.forEach(entry -> ((Rectangle)entry.getKey()).setFill(entry.getValue()));
