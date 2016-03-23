@@ -1,6 +1,6 @@
 apply plugin: 'application'
 apply plugin: 'eclipse'
-mainClassName = "com.ms.Main"
+mainClassName = "com.ms.GameOfLife"
 
 
 repositories {
@@ -8,5 +8,4 @@ repositories {
 }
 
 dependencies {
-	compile 'io.reactivex:rxjava:1.1.0'
 }

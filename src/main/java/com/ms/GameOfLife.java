@@ -71,13 +71,14 @@ public class GameOfLife extends Application {
 		grid.getRowConstraints().add(rowConstraints);
 
 		Random random = new Random();
-		List<Integer> randomNumbers = random.ints(0, NUMBER_OF_ROWS)
-			.limit(30)
+		List<Integer> liveIndexes = random.ints(0, ((NUMBER_OF_ROWS - 1) * (NUMBER_OF_COLUMNS - 1)))
+			.limit(500)
 			.boxed()
 			.collect(Collectors.toList());
 		IntStream.range(0, NUMBER_OF_ROWS).forEach(row -> {
 			IntStream.range(0, NUMBER_OF_COLUMNS).forEach(column -> {
-				boolean onFlag = (random.nextInt(2) == 1 && randomNumbers.contains(row)) ? randomNumbers.contains(column) : false;
+				int index = random.nextInt((NUMBER_OF_ROWS - 1) * (NUMBER_OF_COLUMNS - 1));
+				boolean onFlag = liveIndexes.contains(row * column);
 				GameNode rectangle = new GameNode(5, 5, onFlag ? Color.BLACK : Color.WHITE);	
 				grid.add(rectangle, column, row);
 			});
