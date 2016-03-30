@@ -18,8 +18,8 @@ public class GameNode extends Rectangle {
 	
 	private List<Node> neighbors = null;
 
-	public GameNode(double width, double height, Paint fill) {
-		super(width, height, fill);
+	public GameNode(double width, double height) {
+		super(width, height, Color.WHITE);
 		neighbors = new ArrayList<>();
 	}
 	

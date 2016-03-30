@@ -1,5 +1,6 @@
 package com.ms;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -70,20 +71,22 @@ public class GameOfLife extends Application {
 		grid.getColumnConstraints().add(columnConstraints);
 		grid.getRowConstraints().add(rowConstraints);
 
-		Random random = new Random();
-		List<Integer> liveIndexes = random.ints(0, ((NUMBER_OF_ROWS - 1) * (NUMBER_OF_COLUMNS - 1)))
-			.limit(500)
-			.boxed()
-			.collect(Collectors.toList());
 		IntStream.range(0, NUMBER_OF_ROWS).forEach(row -> {
 			IntStream.range(0, NUMBER_OF_COLUMNS).forEach(column -> {
-				boolean onFlag = liveIndexes.contains(row * column);
-				GameNode rectangle = new GameNode(5, 5, onFlag ? Color.color(random.nextFloat(), random.nextFloat(), random.nextFloat()) : Color.WHITE);
-				grid.add(rectangle, column, row);
+				grid.add(new GameNode(5, 5), column, row);
 			});
 		});
 		ObservableList<Node> children = grid.getChildren();
 		children.parallelStream().forEach(node -> ((GameNode)node).initializeNeighbors(children));
+
+		List<Integer> collect = IntStream.range(0, (NUMBER_OF_ROWS * NUMBER_OF_COLUMNS))
+															.boxed()
+															.collect(Collectors.toList());
+		Collections.shuffle(collect);
+		Random random = new Random();
+		collect.stream()
+				  .limit(250)
+				  .forEach(index -> ((Rectangle)children.get(index)).setFill(Color.color(random.nextFloat(), random.nextFloat(), random.nextFloat())));
 		return grid;
 	}
 
