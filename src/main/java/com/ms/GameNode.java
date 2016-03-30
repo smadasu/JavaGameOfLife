@@ -2,6 +2,7 @@ package com.ms;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 import javafx.collections.ObservableList;
@@ -40,13 +41,14 @@ public class GameNode extends Rectangle {
 	
 	public Paint transformedFill() {
 		long aliveNeighbors = neighbors.stream()
-																.filter(node -> ((Rectangle) node).getFill().equals(Color.BLACK))
+																.filter(node -> !((Rectangle) node).getFill().equals(Color.WHITE))
 																.count();
 		Paint fill = getFill();
-		if (fill.equals(Color.BLACK) && (aliveNeighbors < 2 || aliveNeighbors > 3)) {
-			return Color.WHITE;	
-		} else if (aliveNeighbors == 3) {
-			return Color.BLACK;		
+		if (fill.equals(Color.WHITE) && (aliveNeighbors == 3)) {
+			Random random = new Random();
+			return Color.color(random.nextFloat(), random.nextFloat(), random.nextFloat());
+		} else if ((aliveNeighbors < 2 || aliveNeighbors > 3)){
+			return Color.WHITE;
 		}
 		return fill;
 	}

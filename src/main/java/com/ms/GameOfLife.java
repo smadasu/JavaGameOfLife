@@ -58,7 +58,7 @@ public class GameOfLife extends Application {
 
 	private GridPane createGrid() {
 		GridPane grid = new GridPane();
-		grid.setStyle("-fx-background-color: palegreen; -fx-padding: 2; -fx-hgap: 2; -fx-vgap: 2;");
+		grid.setStyle("-fx-padding: 2; -fx-hgap: 2; -fx-vgap: 2;");
 		grid.setSnapToPixel(false);
 
 		ColumnConstraints columnConstraints = new ColumnConstraints();
@@ -77,9 +77,8 @@ public class GameOfLife extends Application {
 			.collect(Collectors.toList());
 		IntStream.range(0, NUMBER_OF_ROWS).forEach(row -> {
 			IntStream.range(0, NUMBER_OF_COLUMNS).forEach(column -> {
-				int index = random.nextInt((NUMBER_OF_ROWS - 1) * (NUMBER_OF_COLUMNS - 1));
 				boolean onFlag = liveIndexes.contains(row * column);
-				GameNode rectangle = new GameNode(5, 5, onFlag ? Color.BLACK : Color.WHITE);	
+				GameNode rectangle = new GameNode(5, 5, onFlag ? Color.color(random.nextFloat(), random.nextFloat(), random.nextFloat()) : Color.WHITE);
 				grid.add(rectangle, column, row);
 			});
 		});
