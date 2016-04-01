@@ -4,3 +4,5 @@
 .settings/**
 .project
 build/**
+bin/**
+workbench.xmi
